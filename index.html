@@ -1,143 +1,71 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Link Converter Pro</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f4f8;
-            color: #333;
-            padding: 40px 20px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: auto;
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        h2 {
-            color: #2c3e50;
-            margin-top: 0;
-            border-bottom: 2px solid #e1e8ed;
-            padding-bottom: 10px;
-        }
-
-        label {
-            font-weight: 600;
-            display: block;
-            margin: 20px 0 8px;
-            color: #546e7a;
-        }
-
-        textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #cfd8dc;
-            border-radius: 8px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 14px;
-            box-sizing: border-box;
-            transition: border-color 0.3s;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #3498db;
-        }
-
-        .btn {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            margin-top: 10px;
-            transition: background 0.3s;
-        }
-
-        .btn:hover {
-            background-color: #2980b9;
-        }
-
-        .btn-copy {
-            background-color: #546e7a;
-            font-size: 12px;
-            float: right;
-            margin-top: -40px;
-            margin-right: 10px;
-            position: relative;
-            z-index: 10;
-        }
-
-        .btn-copy:hover {
-            background-color: #455a64;
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f4f8; color: #333; padding: 40px 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; margin-top: 0; border-bottom: 2px solid #e1e8ed; padding-bottom: 10px; }
+        label { font-weight: 600; display: block; margin: 20px 0 8px; color: #546e7a; }
+        textarea { width: 100%; padding: 12px; border: 2px solid #cfd8dc; border-radius: 8px; font-family: 'Courier New', Courier, monospace; font-size: 14px; box-sizing: border-box; }
+        .btn { background-color: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .btn:hover { background-color: #2980b9; }
+        .btn-copy { background-color: #546e7a; font-size: 12px; float: right; margin-top: -38px; margin-right: 10px; }
     </style>
 </head>
-
 <body>
 
-    <div class="container">
-        <h2>Link Converter</h2>
+<div class="container">
+    <h2>Link Converter</h2>
+    <label>Paste URLs (one per line):</label>
+    <textarea id="urlInput" rows="4" oninput="convert()"></textarea>
 
-        <label>Paste URLs (one per line):</label>
-        <textarea id="urlInput" rows="5" placeholder="https://example.com" oninput="convert()"></textarea>
+    <label>HTML:</label>
+    <button class="btn btn-copy" onclick="copyText('htmlOutput')">Copy</button>
+    <textarea id="htmlOutput" rows="3" readonly></textarea>
 
-        <label>HTML Anchor Tags (with &lt;br&gt;):</label>
-        <button class="btn btn-copy" onclick="copyText('htmlOutput')">Copy</button>
-        <textarea id="htmlOutput" rows="6" readonly></textarea>
+    <label>BBCode:</label>
+    <button class="btn btn-copy" onclick="copyText('bbOutput')">Copy</button>
+    <textarea id="bbOutput" rows="3" readonly></textarea>
 
-        <label>BBCode (with &lt;br&gt;):</label>
-        <button class="btn btn-copy" onclick="copyText('bbOutput')">Copy</button>
-        <textarea id="bbOutput" rows="6" readonly></textarea>
+    <label>Markdown:</label>
+    <button class="btn btn-copy" onclick="copyText('mdOutput')">Copy</button>
+    <textarea id="mdOutput" rows="3" readonly></textarea>
+    
+    <button class="btn" onclick="clearAll()">Clear All</button>
+</div>
 
-        <button class="btn" onclick="clearAll()">Clear All</button>
-    </div>
+<script>
+    function convert() {
+        const input = document.getElementById('urlInput').value;
+        const lines = input.split(/\n/).filter(line => line.trim() !== "");
+        
+        let html = "", bb = "", md = "";
 
-    <script>
-        function convert() {
-            const input = document.getElementById('urlInput').value;
-            const lines = input.split(/\n/).filter(line => line.trim() !== "");
+        lines.forEach(line => {
+            const url = line.trim();
+            const broken = url.replace("://", "://\u200B");
+            
+            html += `<a href="${url}">${broken}</a><br>\n`;
+            bb += `[url=${url}]${broken}[/url]\n`;
+            md += `[${broken}](${url})\n`;
+        });
 
-            let htmlResults = "";
-            let bbResults = "";
+        document.getElementById('htmlOutput').value = html.trim();
+        document.getElementById('bbOutput').value = bb.trim();
+        document.getElementById('mdOutput').value = md.trim();
+    }
 
-            lines.forEach(line => {
-                const url = line.trim();
-                const brokenText = url.replace("://", "://\u200B");
+    function copyText(id) {
+        document.getElementById(id).select();
+        document.execCommand("copy");
+    }
 
-                // Added <br> for HTML and a newline for BBCode visibility
-                htmlResults += `<a href="${url}">${brokenText}</a><br>\n`;
-                bbResults += `[url=${url}]${brokenText}[/url]\n`;
-            });
-
-            document.getElementById('htmlOutput').value = htmlResults.trim();
-            document.getElementById('bbOutput').value = bbResults.trim();
-        }
-
-        function copyText(id) {
-            const textArea = document.getElementById(id);
-            textArea.select();
-            document.execCommand("copy");
-            alert("Copied to clipboard!");
-        }
-
-        function clearAll() {
-            document.getElementById('urlInput').value = "";
-            document.getElementById('htmlOutput').value = "";
-            document.getElementById('bbOutput').value = "";
-        }
-    </script>
-
+    function clearAll() {
+        ['urlInput', 'htmlOutput', 'bbOutput', 'mdOutput'].forEach(id => document.getElementById(id).value = "");
+    }
+</script>
 </body>
-
 </html>
